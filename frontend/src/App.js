@@ -31,7 +31,7 @@ class App extends Component {
 
   openConnection(){
     ws = new Sockette(
-      "wss://hcbhbv22q9.execute-api.us-east-1.amazonaws.com/dev",
+      "wss://qq332uhrxl.execute-api.us-east-1.amazonaws.com/dev",
       {
         onopen: _ => this.onOpen(),
         onmessage: e => this.onMessageReceived(e),
@@ -41,21 +41,6 @@ class App extends Component {
         onerror: e => console.log("Error:", e)
       }
     )
-  }
-
-  drawPoint(x, y, color, author){
-    this.ctx.fillStyle = color;
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, 5, 0, Math.PI * 2, true);
-    this.ctx.fill();
-    this.ctx.fillText(author, x+10, y);
-  }
-
-  printPositions(){
-    Object.keys(this.positions).forEach((author) => {
-      const { x, y, color } = this.positions[author]
-      this.drawPoint(x,y, color)
-    });
   }
 
   onOpen(){
@@ -70,14 +55,13 @@ class App extends Component {
     console.log('connected')
   }
 
-  onMessageReceived({ data }) {
-    const {x , y, author, color } = JSON.parse(data)
-    if(author !== this.my.username) this.positions[author] = { x, y, color }
-    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-    this.drawPoint(this.my.x, this.my.y, this.my.color, author)
-    this.printPositions()
-  };
+  render(){
+    return (
+        <div>
+          <canvas onMouseMove={this.onMouseMove} id="canvas" />
+        </div>
+    );
+  }
 
   onMouseMove(e) {
     if(!this.isConnected) return
@@ -96,13 +80,35 @@ class App extends Component {
     this.my.y = e.nativeEvent.offsetY
   }
 
-  render(){
-    return (
-        <div>
-          <canvas onMouseMove={this.onMouseMove} id="canvas" />
-        </div>
-    );
+  onMessageReceived({ data }) {
+    const {x , y, author, color } = JSON.parse(data)
+    if(author !== this.my.username) this.positions[author] = { x, y, color }
+    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    this.drawPoint(this.my.x, this.my.y, this.my.color, author)
+    this.printPositions()
+  };
+
+  drawPoint(x, y, color, author){
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, 5, 0, Math.PI * 2, true);
+    this.ctx.fill();
+    this.ctx.fillText(author, x+10, y);
   }
+
+  printPositions(){
+    Object.keys(this.positions).forEach((author) => {
+      const { x, y, color } = this.positions[author]
+      this.drawPoint(x,y, color)
+    });
+  }
+
+
+
+
+
+
 }
 
 export default App

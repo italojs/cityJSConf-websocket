@@ -31,23 +31,23 @@ module.exports.connectionManager = (event, _, callback) => {
       break;
   }
 };
-// Default event
-module.exports.defaultMessage = (_, __, callback) => callback(null)
 
 // Custom event definition
 module.exports.sendMessage = async (event, _, callback) => {
   try {
+    
+    // connect with api gateway
+    const {domainName, stage} = event.requestContext
+    const apiGateway = new AWS.ApiGatewayManagementApi({
+      apiVersion: config.apiGateway.apiVersion,
+      endpoint: `${domainName}/${stage}`
+    });
+
     // Get all connections in database
     const connectionData = await DDB.scan("connectionId");
     // try send message for each connected users
     await Promise.all(connectionData.Items.map(async ({ connectionId }) => {
       try {
-        // connect with api gateway
-        const {domainName, stage} = event.requestContext
-        const apiGateway = new AWS.ApiGatewayManagementApi({
-          apiVersion: config.apiGateway.apiVersion,
-          endpoint: `${domainName}/${stage}`
-        });
         // if connectionID isn't connected into apiGateway, it will throw an error
         return apiGateway
           .postToConnection({ 
@@ -65,4 +65,8 @@ module.exports.sendMessage = async (event, _, callback) => {
   }
   callback(null, response());
 };
+
+// Default event
+module.exports.defaultMessage = (_, __, callback) => callback(null)
+
 
